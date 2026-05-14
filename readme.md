@@ -105,4 +105,7 @@ If deployed in real-world traffic systems, the model would monitor:
 
 ## Authors
 
-Anuj Srinivas
+Kevin Roy
+Lakshmish R K
+Monish P G
+Monish Reddy B
