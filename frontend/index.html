@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Traffic RL Dashboard</title>
+
+    <link rel="stylesheet"
+          href="/frontend/style.css">
+
+</head>
+
+<body>
+
+<div class="main-container">
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <h1>
+            🚦 Smart Traffic Light Control using Reinforcement Learning
+        </h1>
+
+        <p>
+            Intelligent adaptive traffic signal optimization
+            using Q-Learning and Reinforcement Learning.
+        </p>
+
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+
+    <div class="dashboard">
+
+        <!-- INTERSECTION -->
+
+        <div class="intersection-card">
+
+            <h2>Live Traffic Intersection</h2>
+
+            <div class="intersection">
+
+                <!-- NORTH -->
+
+                <div class="lane north-lane">
+
+                    <div class="cars"
+                         id="north-cars"></div>
+
+                </div>
+
+                <!-- SOUTH -->
+
+                <div class="lane south-lane">
+
+                    <div class="cars"
+                         id="south-cars"></div>
+
+                </div>
+
+                <!-- EAST -->
+
+                <div class="lane east-lane">
+
+                    <div class="cars"
+                         id="east-cars"></div>
+
+                </div>
+
+                <!-- WEST -->
+
+                <div class="lane west-lane">
+
+                    <div class="cars"
+                         id="west-cars"></div>
+
+                </div>
+
+                <!-- CENTER -->
+
+                <div class="center-box">
+
+                    <div class="traffic-light">
+
+                        <div class="light red"
+                             id="red-light"></div>
+
+                        <div class="light green"
+                             id="green-light"></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- STATUS -->
+
+            <div class="signal-status">
+
+                <h2>
+
+                    Current Green Signal:
+
+                    <span id="phase-label">
+
+                        North-South
+
+                    </span>
+
+                </h2>
+
+            </div>
+
+        </div>
+
+        <!-- CONTROL PANEL -->
+
+        <div class="control-card">
+
+            <h2>Traffic Controls</h2>
+
+            <button class="green-btn"
+                    onclick="manualAction(0)">
+
+                Open North-South Signal
+
+            </button>
+
+            <button class="blue-btn"
+                    onclick="manualAction(1)">
+
+                Open East-West Signal
+
+            </button>
+
+            <button class="purple-btn"
+                    onclick="autoRun()">
+
+                Run RL Intelligent Control
+
+            </button>
+
+            <button class="red-btn"
+                    onclick="resetEnv()">
+
+                Reset Simulation
+
+            </button>
+
+            <!-- METRICS -->
+
+            <div class="metrics">
+
+                <div class="metric-box">
+
+                    <h3>Reward</h3>
+
+                    <p id="reward">0</p>
+
+                </div>
+
+                <div class="metric-box">
+
+                    <h3>Total Vehicles</h3>
+
+                    <p id="total">0</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- INFO SECTION -->
+
+    <div class="info-section">
+
+        <div class="info-card">
+
+            <h3>What is Reinforcement Learning?</h3>
+
+            <p>
+
+                Reinforcement Learning enables the traffic
+                controller to learn better traffic signal
+                decisions by minimizing congestion and
+                maximizing traffic flow efficiency.
+
+            </p>
+
+        </div>
+
+        <div class="info-card">
+
+            <h3>Project Goal</h3>
+
+            <p>
+
+                Reduce waiting time, optimize traffic flow,
+                and improve smart-city transportation systems.
+
+            </p>
+
+        </div>
+
+        <div class="info-card">
+
+            <h3>SDG Alignment</h3>
+
+            <p>
+
+                Supports SDG 11:
+                Sustainable Cities and Communities.
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="/frontend/script.js"></script>
+
+</body>
+
+</html>

@@ -21,9 +21,11 @@ class TrafficEnvironment:
 
         self.phase = action
 
+        # Random traffic arrival
         for i in range(4):
             self.queues[i] += random.randint(0, 2)
 
+        # Green signal logic
         if action == 0:
 
             self.queues[0] = max(0, self.queues[0] - 2)

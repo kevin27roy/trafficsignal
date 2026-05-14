@@ -1,0 +1,9 @@
+numpy
+pandas
+matplotlib
+pyyaml
+
+fastapi
+uvicorn
+jinja2
+python-multipart
