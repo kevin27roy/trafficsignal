@@ -1,14 +1,41 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# Load RL results
 df = pd.read_csv("experiments/results_1.csv")
 
-plt.plot(df["episode"], df["average_reward"])
+# RL metrics
+rl_reward = df["average_reward"].mean()
 
-plt.xlabel("Episode")
-plt.ylabel("Average Reward")
-plt.title("Reward over Episodes")
+rl_wait = df["avg_wait_time"].mean()
 
-plt.savefig("plots/reward_plot.png")
+# Fixed baseline result
+fixed_wait = 26.39
 
-print("Plot Saved")
+# Comparison table
+comparison = pd.DataFrame({
+    "Method": ["Fixed Timer", "RL Policy"],
+    "Average Waiting Time": [fixed_wait, rl_wait]
+})
+
+print(comparison)
+
+# Plot comparison
+plt.figure(figsize=(8,5))
+
+plt.bar(
+    comparison["Method"],
+    comparison["Average Waiting Time"]
+)
+
+plt.ylabel("Average Waiting Time")
+
+plt.title("Fixed Timer vs RL Policy")
+
+plt.grid(True)
+
+plt.savefig("plots/comparison_plot.png")
+
+plt.show()
+
+print("Comparison plot saved.")
