@@ -1,29 +1,49 @@
+let autoInterval = null
+
+// -----------------------------------
+// Fetch Current State
+// -----------------------------------
+
 async function updateState() {
 
     try {
 
-        const response = await fetch('/state')
+        const response =
+            await fetch('/state')
 
-        const data = await response.json()
+        const data =
+            await response.json()
 
         updateUI(data)
 
     } catch (error) {
 
-        console.error("Failed to fetch state:", error)
+        console.error(
+            "State update failed:",
+            error
+        )
     }
 }
 
+// -----------------------------------
+// Manual Signal Control
+// -----------------------------------
+
 async function manualAction(action) {
+
+    // Stop RL auto mode
+    stopAuto()
 
     try {
 
-        const response = await fetch('/step', {
+        const response =
+            await fetch('/step', {
 
             method: 'POST',
 
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type':
+                    'application/json'
             },
 
             body: JSON.stringify({
@@ -31,79 +51,158 @@ async function manualAction(action) {
             })
         })
 
-        const data = await response.json()
+        const data =
+            await response.json()
 
         updateUI(data)
 
     } catch (error) {
 
-        console.error("Manual action failed:", error)
+        console.error(
+            "Manual action failed:",
+            error
+        )
     }
 }
 
-async function autoRun() {
+// -----------------------------------
+// Single RL Step
+// -----------------------------------
+
+async function autoStep() {
 
     try {
 
-        const response = await fetch('/auto')
+        const response =
+            await fetch('/auto')
 
-        const data = await response.json()
+        const data =
+            await response.json()
 
         updateUI(data)
 
     } catch (error) {
 
-        console.error("RL auto step failed:", error)
+        console.error(
+            "RL auto step failed:",
+            error
+        )
     }
 }
+
+// -----------------------------------
+// Start Continuous RL Simulation
+// -----------------------------------
+
+function autoRun() {
+
+    // Prevent duplicate loops
+    if (autoInterval !== null)
+        return
+
+    autoInterval = setInterval(() => {
+
+        autoStep()
+
+    }, 500)
+}
+
+// -----------------------------------
+// Stop RL Simulation
+// -----------------------------------
+
+function stopAuto() {
+
+    if (autoInterval !== null) {
+
+        clearInterval(autoInterval)
+
+        autoInterval = null
+    }
+}
+
+// -----------------------------------
+// Reset Environment
+// -----------------------------------
 
 async function resetEnv() {
 
+    stopAuto()
+
     try {
 
-        const response = await fetch('/reset', {
+        const response =
+            await fetch('/reset', {
 
             method: 'POST'
         })
 
-        const data = await response.json()
+        const data =
+            await response.json()
 
         updateUI(data)
 
     } catch (error) {
 
-        console.error("Reset failed:", error)
+        console.error(
+            "Reset failed:",
+            error
+        )
     }
 }
 
+// -----------------------------------
+// Update Frontend UI
+// -----------------------------------
+
 function updateUI(data) {
 
-    // Render animated cars
-    renderCars("north-cars", data.queues[0])
-    renderCars("south-cars", data.queues[1])
-    renderCars("east-cars", data.queues[2])
-    renderCars("west-cars", data.queues[3])
+    // Render cars
+    renderCars(
+        "north-cars",
+        data.queues[0]
+    )
 
-    // Total vehicle count
+    renderCars(
+        "south-cars",
+        data.queues[1]
+    )
+
+    renderCars(
+        "east-cars",
+        data.queues[2]
+    )
+
+    renderCars(
+        "west-cars",
+        data.queues[3]
+    )
+
+    // Total vehicles
     const total =
         data.queues[0] +
         data.queues[1] +
         data.queues[2] +
         data.queues[3]
 
-    document.getElementById("total").innerText =
-        total
+    document.getElementById(
+        "total"
+    ).innerText = total
 
     // Reward
     if (data.reward !== undefined) {
 
-        document.getElementById("reward").innerText =
+        document.getElementById(
+            "reward"
+        ).innerText =
             Number(data.reward).toFixed(2)
     }
 
     // Phase label
     const phaseLabel =
-        document.getElementById("phase-label")
+        document.getElementById(
+            "phase-label"
+        )
 
     if (data.phase === 0) {
 
@@ -116,21 +215,31 @@ function updateUI(data) {
             "East-West"
     }
 
-    // Traffic light colors
-    updateTrafficLights(data.phase)
+    // Traffic lights
+    updateTrafficLights(
+        data.phase
+    )
 }
+
+// -----------------------------------
+// Render Cars
+// -----------------------------------
 
 function renderCars(containerId, count) {
 
     const container =
-        document.getElementById(containerId)
+        document.getElementById(
+            containerId
+        )
 
     container.innerHTML = ""
 
     for (let i = 0; i < count; i++) {
 
         const car =
-            document.createElement("div")
+            document.createElement(
+                "div"
+            )
 
         car.classList.add("car")
 
@@ -138,28 +247,38 @@ function renderCars(containerId, count) {
     }
 }
 
+// -----------------------------------
+// Traffic Light Animation
+// -----------------------------------
+
 function updateTrafficLights(phase) {
 
     const red =
-        document.getElementById("red-light")
+        document.getElementById(
+            "red-light"
+        )
 
     const green =
-        document.getElementById("green-light")
+        document.getElementById(
+            "green-light"
+        )
 
     if (phase === 0) {
 
         green.style.opacity = "1"
+
         red.style.opacity = "0.3"
 
     } else {
 
         green.style.opacity = "0.3"
+
         red.style.opacity = "1"
     }
 }
 
-// Initial load
-updateState()
+// -----------------------------------
+// Initial Load
+// -----------------------------------
 
-// Auto refresh every 2 seconds
-setInterval(updateState, 2000)
+updateState()

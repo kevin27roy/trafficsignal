@@ -1,168 +1,208 @@
-from sim.traffic_env import TrafficEnvironment
-from agents.qlearning_agent import QLearningAgent
-
+import numpy as np
 import pandas as pd
 import pickle
-import matplotlib.pyplot as plt
 import os
 
-# Create folders if they do not exist
-os.makedirs("experiments", exist_ok=True)
-os.makedirs("policies", exist_ok=True)
-os.makedirs("plots", exist_ok=True)
+from sim.traffic_env import TrafficEnvironment
 
-# Initialize environment and agent
+
+# -----------------------------------
+# Environment
+# -----------------------------------
+
 env = TrafficEnvironment()
 
-agent = QLearningAgent()
+# -----------------------------------
+# Q-Table
+# -----------------------------------
 
-results = []
+q_table = {}
 
-queue_history = []
+# -----------------------------------
+# Hyperparameters
+# -----------------------------------
 
-episodes = 200
+episodes = 500
 
-steps_per_episode = 100
+alpha = 0.1
 
+gamma = 0.95
+
+epsilon = 1.0
+
+# -----------------------------------
+# Metrics
+# -----------------------------------
+
+reward_history = []
+
+waiting_history = []
+
+# -----------------------------------
+# Create folders
+# -----------------------------------
+
+os.makedirs(
+    "policies",
+    exist_ok=True
+)
+
+os.makedirs(
+    "experiments",
+    exist_ok=True
+)
+
+# -----------------------------------
 # Training Loop
+# -----------------------------------
+
 for episode in range(episodes):
 
     state = env.reset()
 
     total_reward = 0
 
-    total_queue = 0
+    total_waiting = 0
 
-    for step in range(steps_per_episode):
+    for step in range(50):
 
-        # Choose action
-        action = agent.choose_action(state)
+        # -----------------------------------
+        # Initialize state
+        # -----------------------------------
 
-        # Take action in environment
+        if state not in q_table:
+
+            q_table[state] = np.zeros(2)
+
+        # -----------------------------------
+        # Epsilon-Greedy
+        # -----------------------------------
+
+        if np.random.random() < epsilon:
+
+            action = np.random.randint(0, 2)
+
+        else:
+
+            action = np.argmax(
+                q_table[state]
+            )
+
+        # -----------------------------------
+        # Environment Step
+        # -----------------------------------
+
         next_state, reward = env.step(action)
 
-        # Learn from experience
-        agent.learn(state, action, reward, next_state)
-
-        # Update state
-        state = next_state
-
-        # Store reward
         total_reward += reward
 
-        # Track queue length
-        current_queue = sum(env.queues)
+        total_waiting += sum(env.queues)
 
-        total_queue += current_queue
+        # -----------------------------------
+        # Initialize next state
+        # -----------------------------------
 
-        queue_history.append(current_queue)
+        if next_state not in q_table:
 
-    # Metrics
-    avg_reward = total_reward / steps_per_episode
+            q_table[next_state] = np.zeros(2)
 
-    avg_wait_time = -avg_reward
+        # -----------------------------------
+        # Q-Learning Update
+        # -----------------------------------
 
-    avg_queue_length = total_queue / steps_per_episode
+        old_value = q_table[state][action]
 
-    # Save results
-    results.append({
-        "episode": episode,
-        "average_reward": avg_reward,
-        "avg_wait_time": avg_wait_time,
-        "avg_queue_length": avg_queue_length,
-        "epsilon": agent.epsilon,
-        "learning_rate": agent.alpha,
-        "gamma": agent.gamma
-    })
+        next_max = np.max(
+            q_table[next_state]
+        )
 
-    print(
-        f"Episode {episode} | "
-        f"Reward: {avg_reward:.2f} | "
-        f"Wait: {avg_wait_time:.2f} | "
-        f"Queue: {avg_queue_length:.2f} | "
-        f"Epsilon: {agent.epsilon:.3f}"
+        new_value = old_value + alpha * (
+            reward +
+            gamma * next_max -
+            old_value
+        )
+
+        q_table[state][action] = new_value
+
+        state = next_state
+
+    # -----------------------------------
+    # Decay Exploration
+    # -----------------------------------
+
+    epsilon = max(
+        0.01,
+        epsilon * 0.995
     )
 
-# Save experiment results
-df = pd.DataFrame(results)
+    # -----------------------------------
+    # Metrics
+    # -----------------------------------
 
-df.to_csv("experiments/results_1.csv", index=False)
+    avg_waiting = total_waiting / 50
 
-# Save policies
+    reward_history.append(
+        total_reward
+    )
+
+    waiting_history.append(
+        avg_waiting
+    )
+
+    # -----------------------------------
+    # Progress
+    # -----------------------------------
+
+    print(
+        f"Episode {episode+1} | "
+        f"Reward: {total_reward:.2f} | "
+        f"Waiting: {avg_waiting:.2f} | "
+        f"Epsilon: {epsilon:.3f}"
+    )
+
+# -----------------------------------
+# Save Policy
+# -----------------------------------
+
 pickle.dump(
-    agent.q_table,
-    open("policies/policy_v1.pkl", "wb")
+    q_table,
+    open(
+        "policies/policy_v1.pkl",
+        "wb"
+    )
 )
 
-pickle.dump(
-    agent.q_table,
-    open("policies/policy_v2_explored.pkl", "wb")
+# -----------------------------------
+# Save Results
+# -----------------------------------
+
+results = pd.DataFrame({
+
+    "episode": list(
+        range(1, episodes + 1)
+    ),
+
+    "reward": reward_history,
+
+    "avg_waiting_time":
+        waiting_history
+})
+
+results.to_csv(
+
+    "experiments/results_1.csv",
+
+    index=False
 )
 
-# -----------------------------
-# Reward Plot
-# -----------------------------
+print("\nTraining Complete.")
 
-plt.figure(figsize=(10, 5))
+print(
+    "Policy saved to "
+    "policies/policy_v1.pkl"
+)
 
-plt.plot(df["episode"], df["average_reward"])
-
-plt.xlabel("Episode")
-
-plt.ylabel("Average Reward")
-
-plt.title("Reward over Episodes")
-
-plt.grid(True)
-
-plt.savefig("plots/reward_plot.png")
-
-plt.close()
-
-# -----------------------------
-# Queue Length Plot
-# -----------------------------
-
-plt.figure(figsize=(10, 5))
-
-plt.plot(queue_history)
-
-plt.xlabel("Time Step")
-
-plt.ylabel("Queue Length")
-
-plt.title("Queue Length over Time")
-
-plt.grid(True)
-
-plt.savefig("plots/queue_plot.png")
-
-plt.close()
-
-# -----------------------------
-# Waiting Time Plot
-# -----------------------------
-
-plt.figure(figsize=(10, 5))
-
-plt.plot(df["episode"], df["avg_wait_time"])
-
-plt.xlabel("Episode")
-
-plt.ylabel("Average Waiting Time")
-
-plt.title("Average Waiting Time over Episodes")
-
-plt.grid(True)
-
-plt.savefig("plots/wait_time_plot.png")
-
-plt.close()
-
-print("\nTraining Complete")
-
-print("Results saved to experiments/results_1.csv")
-
-print("Policies saved in policies/")
-
-print("Plots saved in plots/")
+print(
+    "Results saved to "
+    "experiments/results_1.csv"
+)
