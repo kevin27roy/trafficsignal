@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+
+  traffic-rl:
+
+    build: .
+
+    container_name: smart_traffic_rl
+
+    ports:
+      - "8000:8000"
+
+    restart: always
